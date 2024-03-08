@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -c
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: api-server
+  name: api-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api-server
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -c
+        kompose.version: 1.32.0 (765fde254)
+      labels:
+        io.kompose.network/rubra: "true"
+        io.kompose.service: api-server
+    spec:
+      containers:
+        - env:
+            - name: LITELLM_HOST
+              value: litellm
+            - name: MONGODB_HOST
+              value: mongodb
+            - name: REDIS_HOST
+              value: redis
+          image: ghcr.io/rubra-ai/rubra/api_server:main
+          name: api-server
+          ports:
+            - containerPort: 8000
+              hostPort: 8000
+              protocol: TCP
+      restartPolicy: Always

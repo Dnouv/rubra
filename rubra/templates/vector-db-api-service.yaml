@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -c
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: vector-db-api
+  name: vector-db-api
+spec:
+  ports:
+    - name: "8010"
+      port: 8010
+      targetPort: 8010
+  selector:
+    io.kompose.service: vector-db-api

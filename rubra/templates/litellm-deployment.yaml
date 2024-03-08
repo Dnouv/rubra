@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -c
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: litellm
+  name: litellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: litellm
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -c
+        kompose.version: 1.32.0 (765fde254)
+      labels:
+        io.kompose.network/rubra: "true"
+        io.kompose.service: litellm
+    spec:
+      containers:
+        - args:
+            - --config
+            - /app/config.yaml
+            - --port
+            - "8002"
+            - --num_workers
+            - "8"
+          image: ghcr.io/berriai/litellm:main-v1.22.9
+          livenessProbe:
+            exec:
+              command:
+                - litellm --health --port 8002
+            failureThreshold: 3
+            initialDelaySeconds: 40
+            periodSeconds: 30
+            timeoutSeconds: 30
+          name: litellm
+          ports:
+            - containerPort: 8002
+              hostPort: 8002
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app/config.yaml
+              name: litellm-claim0
+      restartPolicy: Always
+      volumes:
+        - name: litellm-claim0
+          persistentVolumeClaim:
+            claimName: litellm-claim0

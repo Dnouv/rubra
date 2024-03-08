@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -c
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: task-executor
+  name: task-executor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: task-executor
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -c
+        kompose.version: 1.32.0 (765fde254)
+      labels:
+        io.kompose.network/rubra: "true"
+        io.kompose.service: task-executor
+    spec:
+      containers:
+        - env:
+            - name: EMBEDDING_HOST
+              value: text-embedding-api
+            - name: LITELLM_HOST
+              value: litellm
+            - name: MILVUS_HOST
+              value: milvus
+            - name: MONGODB_HOST
+              value: mongodb
+            - name: REDIS_HOST
+              value: redis
+            - name: VECTOR_DB_HOST
+              value: vector-db-api
+          image: ghcr.io/rubra-ai/rubra/task_executor:main
+          name: task-executor
+      restartPolicy: Always

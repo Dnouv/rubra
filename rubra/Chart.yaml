@@ -1,0 +1,7 @@
+name: rubra
+description: A generated Helm Chart for docker-compose from Skippbox Kompose
+version: 0.0.1
+apiVersion: v2
+keywords:
+  - rubra
+

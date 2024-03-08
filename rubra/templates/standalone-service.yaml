@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -c
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: standalone
+  name: standalone
+spec:
+  ports:
+    - name: "19530"
+      port: 19530
+      targetPort: 19530
+    - name: "9091"
+      port: 9091
+      targetPort: 9091
+  selector:
+    io.kompose.service: standalone
