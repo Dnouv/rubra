@@ -6,7 +6,8 @@ import os
 import requests
 
 VECTOR_DB_HOST = os.getenv("VECTOR_DB_HOST", "localhost")
-VECTOR_DB_MATCH_URL = f"http://{VECTOR_DB_HOST}:8010/similarity_match"
+VECTOR_DB_PORT = os.getenv("VECTOR_DB_PORT", "8010")
+VECTOR_DB_MATCH_URL = f"http://{VECTOR_DB_HOST}:{VECTOR_DB_PORT}/similarity_match"
 
 
 class FileKnowledgeTool:
