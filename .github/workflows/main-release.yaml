@@ -25,11 +25,15 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }} | tr '[:upper:]' '[:lower:]'
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Expose GH Runtime
         uses: crazy-max/ghaction-github-runtime@v3
+
+      - name: Convert REPO to lowercase
+        id: repo
+        run: echo "::set-output name=repo::$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]')"
 
       - name: Build and Push Docker Images
         run: |
@@ -37,7 +41,7 @@ jobs:
         env:
           REGISTRY: "ghcr.io"
           ORG: ${{ github.repository_owner }}
-          REPO: ${{ github.event.repository.name }}
+          REPO: ${{ steps.repo.outputs.repo }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
 
   build-tauri:
