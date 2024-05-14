@@ -31,17 +31,19 @@ jobs:
       - name: Expose GH Runtime
         uses: crazy-max/ghaction-github-runtime@v3
 
-      - name: Convert REPO to lowercase
-        id: repo
-        run: echo "::set-output name=repo::$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]')"
+      - name: set lower case owner name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
 
       - name: Build and Push Docker Images
         run: |
           make build_and_push_images
         env:
           REGISTRY: "ghcr.io"
-          ORG: ${{ github.repository_owner }}
-          REPO: ${{ steps.repo.outputs.repo }}
+          ORG: ${{ env.OWNER_LC }}
+          REPO: ${{ github.repository }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
 
   build-tauri:
