@@ -1,44 +1,44 @@
-version: '3.8'
+version: "3.8"
 
 services:
   standalone:
     container_name: milvus
-    image: milvusdb/milvus:v2.3.3
-    command: ['milvus', 'run', 'standalone']
+    image: milvusdb/milvus:v2.3.12
+    command: ["milvus", "run", "standalone"]
     security_opt:
       - seccomp:unconfined
     environment:
-      ETCD_USE_EMBED: 'true'
-      ETCD_DATA_DIR: '/etcd'
-      ETCD_CONFIG_PATH: '/milvus/configs/embedEtcd.yaml'
-      COMMON_STORAGETYPE: 'local'
+      ETCD_USE_EMBED: "true"
+      ETCD_DATA_DIR: "/etcd"
+      ETCD_CONFIG_PATH: "/milvus/configs/embedEtcd.yaml"
+      COMMON_STORAGETYPE: "local"
     volumes:
       - milvus:/var/lib/milvus
       - ./milvus.yaml:/milvus/configs/milvus.yaml
       - etcd:/etcd
       - ${DOCKER_VOLUME_DIRECTORY:-.}/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:9091/healthz']
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
       interval: 30s
       start_period: 90s
       timeout: 20s
       retries: 3
     ports:
-      - '19530:19530'
-      - '9091:9091'
+      - "19530:19530"
+      - "9091:9091"
     networks:
       - rubra
     logging:
       driver: json-file
       options:
-        max-size: '10m'
-        max-file: '3'
+        max-size: "10m"
+        max-file: "3"
 
   mongodb:
     image: mongo
     container_name: mongodb
     ports:
-      - '27017:27017'
+      - "27017:27017"
     volumes:
       - mongodb:/data/db
     networks:
@@ -49,18 +49,19 @@ services:
     container_name: redis
     command: redis-server --appendonly yes
     ports:
-      - '6379:6379'
+      - "6379:6379"
     networks:
       - rubra
 
   litellm:
     image: ghcr.io/berriai/litellm:main-v1.22.9
     ports:
-      - '8002:8002'
+      - "8002:8002"
     container_name: litellm
     volumes:
       - ./llm-config.yaml:/app/config.yaml
-    command: ["--config", "/app/config.yaml", "--port", "8002", "--num_workers", "8"]
+    command:
+      ["--config", "/app/config.yaml", "--port", "8002", "--num_workers", "8"]
     healthcheck:
       test: ["CMD-SHELL", "litellm --health --port 8002"]
       interval: 30s
@@ -77,7 +78,7 @@ services:
     container_name: text-embedding-api
     image: ghcr.io/rubra-ai/rubra/text_embedding_api:${RUBRA_TAG:-main}
     ports:
-      - '8020:8020'
+      - "8020:8020"
     environment:
       - MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
     networks:
@@ -92,13 +93,12 @@ services:
     container_name: vector-db-api
     image: ghcr.io/rubra-ai/rubra/vector_db_api:${RUBRA_TAG:-main}
     ports:
-      - '8010:8010'
+      - "8010:8010"
     environment:
       - MILVUS_HOST=milvus
       - EMBEDDING_HOST=text-embedding-api
     networks:
       - rubra
-
 
   task-executor:
     build:
@@ -121,7 +121,6 @@ services:
     networks:
       - rubra
 
-
   api-server:
     build:
       context: ./services/backend/api_server
@@ -135,7 +134,7 @@ services:
       - MONGODB_HOST=mongodb
       - LITELLM_HOST=litellm
     ports:
-      - '8000:8000'
+      - "8000:8000"
     depends_on:
       litellm:
         condition: service_healthy
@@ -163,7 +162,6 @@ networks:
   rubra:
     name: rubra
     driver: bridge
-
 
 volumes:
   milvus:
