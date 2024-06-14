@@ -13,38 +13,32 @@ endef
 all: build_images
 
 build_images:
-	@for dir in ./services/backend/* ./services/frontend/*; do \
-		if [ -d "$$dir" ] && [ -f "$$dir/Dockerfile" ]; then \
-			SERVICE=$$(basename $$dir); \
-			FULL_TAG=$(call get_full_tag,$$SERVICE); \
-			echo "Building Docker image $$FULL_TAG"; \
-			docker build -t $$FULL_TAG --build-context core=./core $$dir; \
-		else \
-			if [ -d "$$dir" ]; then \
-				echo "Skipping $$dir, no Dockerfile found."; \
-			fi \
-		fi \
-	done
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "SERVICE is not set. Usage: make build_images SERVICE=api-server"; \
+		exit 1; \
+	fi
+	FULL_TAG=$(call get_full_tag,$(SERVICE))
+	echo "Building Docker image $(FULL_TAG)"
+	docker build -t $(FULL_TAG) --build-context core=./core ./services/$(SERVICE)
 
 build_and_push_images:
 	@if [ -z "$(REGISTRY)" ] || [ -z "$(ORG)" ]; then \
 		echo "Error: REGISTRY and ORG must be set to push images."; \
 		exit 1; \
 	fi
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "SERVICE is not set. Usage: make build_and_push_images SERVICE=api-server"; \
+		exit 1; \
+	fi
 	docker buildx create --use
-	@for dir in ./services/backend/* ./services/frontend/*; do \
-		if [ -d "$$dir" ] && [ -f "$$dir/Dockerfile" ]; then \
-			SERVICE=$$(basename $$dir); \
-			FULL_TAG=$(call get_full_tag,$$SERVICE); \
-			echo "Pushing Docker image $$FULL_TAG"; \
-			if [ "$(GITHUB_WORKFLOW)" != "local" ]; then \
-				BUILDX_CACHE_FLAGS="--cache-from type=gha,scope=$$SERVICE --cache-to type=gha,mode=max,scope=$$SERVICE"; \
-			else \
-				BUILDX_CACHE_FLAGS=""; \
-			fi; \
-			docker buildx build --build-context core=./core $(BUILDX_FLAGS) $(BUILDX_CACHE_FLAGS) -t $$FULL_TAG $$dir; \
-		fi \
-	done
+	FULL_TAG=$(call get_full_tag,$(SERVICE))
+	echo "Pushing Docker image $(FULL_TAG)"
+	if [ "$(GITHUB_WORKFLOW)" != "local" ]; then \
+		BUILDX_CACHE_FLAGS="--cache-from type=gha,scope=$(SERVICE) --cache-to type=gha,mode=max,scope=$(SERVICE)"; \
+	else \
+		BUILDX_CACHE_FLAGS=""; \
+	fi; \
+	docker buildx build --build-context core=./core $(BUILDX_FLAGS) $(BUILDX_CACHE_FLAGS) -t $(FULL_TAG) ./services/$(SERVICE)
 
 create-tag:
 	@if [ -z "$(VERSION)" ]; then \
