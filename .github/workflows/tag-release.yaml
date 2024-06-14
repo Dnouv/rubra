@@ -8,6 +8,16 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        services:
+          [
+            api-server,
+            task-executor,
+            text-embedding-api,
+            vector-db-api,
+            frontend,
+          ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,29 +40,21 @@ jobs:
 
       - name: set lower case owner name
         run: |
-          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
-        env:
-          OWNER: "${{ github.repository_owner }}"
+          echo "OWNER_LC=${{ github.repository_owner,, }}" >>${GITHUB_ENV}
 
       - name: Convert repository name to lowercase
-        run: echo "REPO_NAME_LC=$(echo ${{ github.event.repository.name }} | awk '{print tolower($0)}')" >> $GITHUB_ENV
-
-      - name: Print event trigger
-        run: echo "Workflow triggered by ${{ github.actor }}"
+        run: echo "REPO_NAME_LC=${{ github.event.repository.name,, }}" >> $GITHUB_ENV
 
       - name: Build and Push Docker Images
         run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            TAG=${GITHUB_REF#refs/tags/}
-          else
-            TAG=${GITHUB_REF#refs/heads/}
-          fi
+          TAG=${GITHUB_REF#refs/tags/}
           make build_and_push_images TAG=$TAG
         env:
           REGISTRY: ghcr.io
           ORG: ${{ env.OWNER_LC }}
           REPO: ${{ env.REPO_NAME_LC }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
+        shell: bash
 
   build-tauri:
     runs-on: [macos-latest]

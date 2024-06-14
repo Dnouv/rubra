@@ -1,14 +1,16 @@
-.PHONY: create-tag
+.PHONY: all build_images build_and_push_images create-tag init-docs validate-docs
 
-TAG := $(or $(TAG),main)
-GITHUB_WORKFLOW := $(or $(GITHUB_WORKFLOW),local)
-REGISTRY := $(or $(REGISTRY),index.docker.io)
+TAG ?= main
+GITHUB_WORKFLOW ?= local
+REGISTRY ?= index.docker.io
 PLATFORMS := linux/amd64,linux/arm64
 BUILDX_FLAGS := --platform $(PLATFORMS) --push
 
 define get_full_tag
 $(if $(REGISTRY),$(REGISTRY)/)$(if $(ORG),$(ORG)/)$(if $(REPO),$(REPO)/)$(1):$(TAG)
 endef
+
+all: build_images
 
 build_images:
 	@for dir in ./services/backend/* ./services/frontend/*; do \
@@ -40,7 +42,7 @@ build_and_push_images:
 			else \
 				BUILDX_CACHE_FLAGS=""; \
 			fi; \
-			docker buildx build --build-context core=./core $(BUILDX_FLAGS) $$BUILDX_FLAGS_EXTRA -t $$FULL_TAG $$dir; \
+			docker buildx build --build-context core=./core $(BUILDX_FLAGS) $(BUILDX_CACHE_FLAGS) -t $$FULL_TAG $$dir; \
 		fi \
 	done
 
@@ -59,7 +61,6 @@ create-tag:
 init-docs:
 	docker run --rm --workdir=/docs -v $${PWD}/docs:/docs node:18-buster yarn install
 
-# Ensure docs build without errors. Makes sure generated docs are in-sync with CLI.
 validate-docs:
 	docker run --rm --workdir=/docs -v $${PWD}/docs:/docs node:18-buster yarn build
 	if [ -n "$$(git status --porcelain --untracked-files=no)" ]; then \
