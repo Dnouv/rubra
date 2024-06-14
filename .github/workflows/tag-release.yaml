@@ -47,8 +47,7 @@ jobs:
           else
             TAG=${GITHUB_REF#refs/heads/}
           fi
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          make build_and_push_images
+          make build_and_push_images TAG=$TAG
         env:
           REGISTRY: ghcr.io
           ORG: ${{ env.OWNER_LC }}
