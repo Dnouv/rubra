@@ -37,6 +37,9 @@ jobs:
       - name: Convert repository name to lowercase
         run: echo "REPO_NAME_LC=$(echo ${{ github.event.repository.name }} | awk '{print tolower($0)}')" >> $GITHUB_ENV
 
+      - name: Print event trigger
+        run: echo "Workflow triggered by ${{ github.actor }}"
+
       - name: Build and Push Docker Images
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -44,6 +47,7 @@ jobs:
           else
             TAG=${GITHUB_REF#refs/heads/}
           fi
+          echo "TAG is set to $TAG"
           make build_and_push_images
         env:
           REGISTRY: ghcr.io
