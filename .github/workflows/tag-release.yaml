@@ -39,11 +39,10 @@ jobs:
         uses: crazy-max/ghaction-github-runtime@v3
 
       - name: set lower case owner name
-        run: |
-          echo "OWNER_LC=${{ github.repository_owner,, }}" >>${GITHUB_ENV}
+        run: echo "OWNER_LC=${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
 
       - name: Convert repository name to lowercase
-        run: echo "REPO_NAME_LC=${{ github.event.repository.name,, }}" >> $GITHUB_ENV
+        run: echo "REPO_NAME_LC=${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
 
       - name: Build and Push Docker Images
         run: |
